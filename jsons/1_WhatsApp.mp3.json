@@ -1,0 +1,48 @@
+{
+  "file": "1_WhatsApp.mp3",
+  "chunks": [
+    {
+      "number": "1",
+      "title": "WhatsApp",
+      "start": 0.06,
+      "end": 2.06,
+      "text": "opening is not allowed"
+    },
+    {
+      "number": "1",
+      "title": "WhatsApp",
+      "start": 4.12,
+      "end": 5.32,
+      "text": "the door is closed"
+    },
+    {
+      "number": "1",
+      "title": "WhatsApp",
+      "start": 6.84,
+      "end": 8.98,
+      "text": "if the door is open"
+    },
+    {
+      "number": "1",
+      "title": "WhatsApp",
+      "start": 10.46,
+      "end": 12.16,
+      "text": "is not open"
+    },
+    {
+      "number": "1",
+      "title": "WhatsApp",
+      "start": 14.32,
+      "end": 15.780000000000001,
+      "text": "open like this"
+    },
+    {
+      "number": "1",
+      "title": "WhatsApp",
+      "start": 16.12,
+      "end": 18.52,
+      "text": "thing says"
+    }
+  ],
+  "full_text": " opening is not allowed the door is closed if the door is open is not open open like this thing says"
+}

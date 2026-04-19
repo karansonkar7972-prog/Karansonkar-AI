@@ -1,9 +1,19 @@
+import os
 import whisper
 
 model = whisper.load_model("base")
 
-result = model.transcribe(audio = "audios.mp3/1_WhatsApp.mp3",
-                          language="hi",
-                          task="translate")
+files = os.listdir("audios")
 
-print(result["text"])
+for f in files:
+    if f.endswith(".mp3"):
+        print(f"Processing: {f}")
+
+        result = model.transcribe(
+            audio=f"audios/{f}",
+            fp16=False,
+            temperature=0,
+            condition_on_previous_text=False
+        )
+
+        print(result["text"])

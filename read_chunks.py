@@ -3,42 +3,121 @@ import os
 import json
 import numpy as np
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity
 import joblib
 
+# 🔹 Embedding function
 def create_embedding(text_list):
-    # https://github.com/ollama/ollama/blob/main/docs/api.md#generate-embeddings
-    r = requests.post("http://localhost:11434/api/embed", json={
-        "model": "bge-m3",
-        "input": text_list
-    })
+    try:
+        r = requests.post(
+            "http://localhost:11434/api/embed",
+            json={
+                "model": "bge-m3",
+                "input": text_list
+            },
+            timeout=60
+        )
 
-    embedding = r.json()["embeddings"] 
-    return embedding
+        r.raise_for_status()
+        data = r.json()
 
-jsons = os.listdir("jsons")  # List all the jsons 
+        if "embeddings" not in data:
+            print("Embedding API error:", data)
+            return None
+
+        return data["embeddings"]
+
+    except Exception as e:
+        print("Embedding error:", e)
+        return None
+
+
+# 🔹 Folder check
+folder_path = "jsons"
+
+if not os.path.exists(folder_path):
+    print("❌ 'jsons' folder not found!")
+    exit()
+
+json_files = os.listdir(folder_path)
+
 my_dicts = []
 chunk_id = 0
 
-for json_file in jsons:
-    with open(f"jsons/{json_file}") as f:
+
+# 🔹 Main loop
+for json_file in json_files:
+
+    if not json_file.endswith(".mp3.json"):
+        continue
+
+    file_path = os.path.join(folder_path, json_file)
+
+    with open(file_path, encoding="utf-8") as f:
         content = json.load(f)
-    print(f"Creating Embeddings for {json_file}")
-    embeddings = create_embedding([c['text'] for c in content['chunks']])
-       
-    for i, chunk in enumerate(content['chunks']):
-        chunk['chunk_id'] = chunk_id
-        chunk["embedding"] = embeddings[i]
+
+    print(f"📦 Processing: {json_file}")
+
+    chunks = content.get("chunks", [])
+
+    if not chunks:
+        print("⚠️ No chunks found")
+        continue
+
+    # Extract valid texts
+    texts = [c.get("text", "").strip() for c in chunks if c.get("text")]
+
+    if not texts:
+        print("⚠️ No valid text found")
+        continue
+
+    # Create embeddings
+    embeddings = create_embedding(texts)
+
+    if embeddings is None:
+        print("❌ Embedding failed")
+        continue
+
+    if len(embeddings) != len(texts):
+        print("❌ Embedding length mismatch")
+        continue
+
+    # Map embeddings to chunks
+    text_index = 0
+
+    for chunk in chunks:
+        text = chunk.get("text", "").strip()
+
+        if not text:
+            continue
+
+        chunk_data = {
+            "chunk_id": chunk_id,
+            "file_name": json_file,
+            "number": chunk.get("number"),
+            "title": chunk.get("title"),
+            "start": chunk.get("start"),
+            "end": chunk.get("end"),
+            "text": text,
+            "embedding": embeddings[text_index]
+        }
+
+        my_dicts.append(chunk_data)
+
         chunk_id += 1
-        my_dicts.append(chunk) 
-# print(my_dicts)
+        text_index += 1
 
-df = pd.DataFrame.from_records(my_dicts)
-# Save this dataframe
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(BASE_DIR, "embeddings.joblib")
 
-joblib.dump(df, file_path)
+# 🔹 Final check
+if len(my_dicts) == 0:
+    print("❌ No embeddings created! Check JSON or API.")
+    exit()
 
-print(f"embeddings.joblib saved at: {file_path}")
 
+# 🔹 Create DataFrame
+df = pd.DataFrame(my_dicts)
+
+# 🔹 Save file
+joblib.dump(df, "embeddings.joblib")
+
+print("\n✅ Done!")
+print("Total chunks:", len(df))

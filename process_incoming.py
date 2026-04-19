@@ -18,7 +18,7 @@ def create_embedding(text_list):
 def inference(prompt):
     r = requests.post("http://localhost:11434/api/generate", json={
         # "model": "deepseek-r1",
-        "model": "llama3",
+        "model": "llama3.2",
         "prompt": prompt,
         "stream": False
     })
@@ -44,9 +44,7 @@ max_indx = similarities.argsort()[::-1][0:top_results]
 new_df = df.loc[max_indx] 
 # print(new_df[["title", "number", "text"]])
 
-prompt = f'''You are a smart AI assistant for "Karansonkar-AI" video library.
-
-You analyze the context and automatically adapt your response style:
+prompt = f'''I am teaching web development in my Sigma web development course. Here are video subtitle chunks containing video title, video number, start time in seconds, end time in seconds, the text at that time:
 
 {new_df[["title", "number", "start", "end", "text"]].to_json(orient="records")}
 ---------------------------------
